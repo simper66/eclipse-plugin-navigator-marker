@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+	<extension point="org.eclipse.ui.decorators">
+		<decorator
+			id="org.jga.navmark.decoratorLight"
+			class="org.jga.eclipse.plugin.navigatormarker.decorator.NavigatorMarkerDecoratorLight"
+			label="Navigator Marker"
+			lightweight="true"
+			adaptable="true"
+			state="true"
+		>
+			<enablement>
+				<or>
+					<objectClass name="org.eclipse.core.resources.IFile"></objectClass>
+					<objectClass name="org.eclipse.core.resources.IFolder"></objectClass>
+					<objectClass name="org.eclipse.core.resources.IProject"></objectClass>
+				</or>
+			</enablement>
+		</decorator>
+	</extension>
+ 
+</plugin>
