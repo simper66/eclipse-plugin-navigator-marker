@@ -1,6 +1,6 @@
 package org.jga.eclipse.plugin.navigatormarker.decorator;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.eclipse.core.resources.IFile;
@@ -10,10 +10,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
-import org.eclipse.core.resources.IResourceDelta;
-import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -132,64 +129,52 @@ public class NavigatorMarkerDecoratorLight extends LabelProvider implements ILig
 		if (event.getType()==IResourceChangeEvent.POST_BUILD || event.getType()==IResourceChangeEvent.POST_CHANGE ) {
 			try{ 
 
-				List<IResource> resourcesToRedecorate = new ArrayList<IResource>();
+				LinkedList<IResource> resourcesToRedecorate = new LinkedList<IResource>();
 				IMarkerDelta[] deltaMarkers = event.findMarkerDeltas(IMarker.PROBLEM, true);
 
 				//FOR EACH DELTA MARKER
 				for (IMarkerDelta deltaMarker: deltaMarkers) {
 					IResource rsc = this.getResource(deltaMarker.getResource());
-					if (!rsc.isAccessible()) continue;
+					if (!rsc.isAccessible() && event.getType()!=IResourceChangeEvent.POST_CHANGE) continue;
 					
 					if (rsc instanceof IProject) { //IF ITS RESOURCE IS A IPROJECT WE SEE WHETHER IT EXISTS BUILD PATH PROBLEMS
 						
 						IMarker[] markers = ((IResource)rsc).findMarkers(IMarker.PROBLEM, true, IResource.DEPTH_ZERO);
+						int newMarker = -1;
 						if (markers.length>0) {
 							for (int markerNum=0 ; markerNum<markers.length ; markerNum++) {
 								if (IJavaModelMarker.BUILDPATH_PROBLEM_MARKER.equals(markers[markerNum].getType())) {
-									int rscIdx = resourcesToRedecorate.indexOf(rsc);
-									if (rscIdx==-1) {//FIRST MIGHT BE "CLEAR"
-										rsc.setSessionProperty(NavigatorMarkerDecoratorLight.NEW_DECORATION_QN, -1);
-										resourcesToRedecorate.add(rsc);
-									} else {//IF A SECOND ONE CAMES IT MIGHT BE "PUT ERROR" BEACAUSE IT HAS NOT BEEN FIXED
-										rsc.setSessionProperty(NavigatorMarkerDecoratorLight.NEW_DECORATION_QN, IMarker.SEVERITY_INFO);
-										resourcesToRedecorate.set(rscIdx, rsc);
-									}
+									newMarker = 0;
+									break;
 								}
 							}
 						}
+						rsc.setSessionProperty(NavigatorMarkerDecoratorLight.NEW_DECORATION_QN, newMarker);
+						resourcesToRedecorate.removeFirstOccurrence(rsc);
+						resourcesToRedecorate.add(rsc);
 					
 					} else if (rsc instanceof IFile && resourcesToRedecorate.indexOf(rsc)==-1) {//IF ITS RESOURCE IS A IFILE AND IT HAVE NOT BEEN DEALED BY ANOTHER DELTAMARKER
 
-						//ITS WORST DECORATOR. -1 AND 0 ARE ASIGNED TO -1 (CLEAR). 0 IS USED FOR THE EXCLAMACION
-						int severity=rsc.findMaxProblemSeverity(IMarker.PROBLEM, true, IResource.DEPTH_ZERO);
-						if (severity==0) severity=-1;
-
-						//WE INSERT A NEW DECORATOR IN ITS SESSION AND IS ADDED TO THE LIST
-						rsc.setSessionProperty(NavigatorMarkerDecoratorLight.NEW_DECORATION_QN, severity);
-						resourcesToRedecorate.add(rsc);
-
-						//DEALING WITH ITS PARENTS
-						while ((rsc=rsc.getParent()).getParent()!=null) {
-
-							//IF THE PARENT DOES NOT EXISTS IT IS ADDED WITH ITS CHILD DECORATOR. 
-							int rscIdx = resourcesToRedecorate.indexOf(rsc);
-							if (rscIdx==-1) {
-								rsc.setSessionProperty(NavigatorMarkerDecoratorLight.NEW_DECORATION_QN, severity);
-								resourcesToRedecorate.add(rsc);
-
-							//IF THE PARENT EXISTS AND THIS CHILD HAS ERROR O WARNING DECORATOR
-							} else if (severity>IMarker.SEVERITY_INFO) {
-								//WE TAKE THE WORST DECORATOR OF THIS PARENT UNTIL NOW
-								int worstSeverity = (int)resourcesToRedecorate.get(rscIdx).getSessionProperty(NavigatorMarkerDecoratorLight.NEW_DECORATION_QN);
-								//IF THIS CHILD DECORATOR IS WORST WE REPLACE 
-								if (severity>worstSeverity) {
-									rsc.setSessionProperty(NavigatorMarkerDecoratorLight.NEW_DECORATION_QN, severity);
-									resourcesToRedecorate.set(rscIdx, rsc);
+						for ( ; rsc.getParent()!=null ; rsc=rsc.getParent() ) {
+							
+							if (!rsc.isAccessible()) continue;
+							
+							int severity=-1;
+							Integer currentSeverity = null;
+							
+							if (rsc.isAccessible()) {
+								severity=rsc.findMaxProblemSeverity(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE);
+								currentSeverity = (Integer)rsc.getSessionProperty(NavigatorMarkerDecoratorLight.NEW_DECORATION_QN);
+								
+								if ( currentSeverity==null || (currentSeverity!=severity) ) {
+									//-1 AND 0 ARE ASIGNED TO -1 (CLEAR). 0 IS USED FOR THE EXCLAMACION
+									rsc.setSessionProperty(NavigatorMarkerDecoratorLight.NEW_DECORATION_QN, severity==0?-1:severity);
+									resourcesToRedecorate.add(rsc);
 								}
 							}
 
-						}//WHILE PARENT
-
+						}
+							
 					}//RESOURCE NOT DEALED
 
 				}//DELTA MARKERS

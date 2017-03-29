@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: NavigatorMarker
 Bundle-SymbolicName: org.jga.navmark.plugin;singleton:=true
-Bundle-Version: 1.0.0.v1
+Bundle-Version: 1.0.0
 Bundle-Vendor: JGA
 Require-Bundle: org.eclipse.core.resources;bundle-version="3.8.101",
  org.eclipse.jdt.core;bundle-version="3.9.2",
