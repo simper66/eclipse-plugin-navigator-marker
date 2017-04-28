@@ -2,7 +2,6 @@ package org.jga.eclipse.plugin.navigatormarker.plugin;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.ui.statushandlers.StatusManager;
 
@@ -19,12 +18,22 @@ public class NavigatorMarkerPlugin extends AbstractUIPlugin {
 	public NavigatorMarkerPlugin() {
 	}
 
+	@Override
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		NavigatorMarkerPlugin.plugin = this;
 	}
 
+	@Override
 	public void stop(BundleContext context) throws Exception {
+		/*
+		IJobManager manager = Job.getJobManager();
+		Job[] decorationJobs = manager.find(DecoratorManager.FAMILY_DECORATE);
+		for (Job job : decorationJobs) {
+			job.cancel();
+		}
+		//Job found still running after platform shutdown.  Jobs should be canceled by the plugin that scheduled them during shutdown: org.eclipse.ui.internal.decorators.DecorationScheduler$1
+		*/
 		NavigatorMarkerPlugin.plugin = null;
 		super.stop(context);
 	}

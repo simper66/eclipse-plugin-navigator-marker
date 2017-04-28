@@ -37,9 +37,9 @@ import org.jga.eclipse.plugin.navigatormarker.plugin.NavigatorMarkerPlugin;
 
 public class NavigatorMarkerDecoratorLight extends LabelProvider implements ILightweightLabelDecorator, IResourceChangeListener {
 	
-	private final static String ID = "org.jga.navmark.decoratorLight";
+	private final static String ID = "org.jga.navmark.plugin.decoratorLight";
 	
-	private final static String UIJob_NAME = "ProblemRedecoration";
+	private final static String UI_JOB_NAME = "org.jga.navmark.plugin.decoratorLight.problemRedecoration";
 	
 	private final static QualifiedName NEW_DECORATION_QN = new QualifiedName(NavigatorMarkerDecoratorLight.ID, "newDecoration");
 
@@ -103,22 +103,20 @@ public class NavigatorMarkerDecoratorLight extends LabelProvider implements ILig
 				}
 			}
 			
-			if (severity<IMarker.SEVERITY_INFO) return;
-
-			if (severity==IMarker.SEVERITY_ERROR) {
+			if (severity<IMarker.SEVERITY_INFO) {
+				return;
+			} else if (severity==IMarker.SEVERITY_ERROR) {
 				decoration.addOverlay(NavigatorMarkerDecoratorLight.IMG_ERROR, IDecoration.BOTTOM_LEFT);
 			} else if (severity==IMarker.SEVERITY_WARNING) {
 				decoration.addOverlay(NavigatorMarkerDecoratorLight.IMG_WARNING, IDecoration.BOTTOM_LEFT);
 			} else if (severity==IMarker.SEVERITY_INFO) {
 				decoration.addOverlay(NavigatorMarkerDecoratorLight.IMG_EXCLAMATION, IDecoration.BOTTOM_LEFT);
 			}
-
+			
 		} catch (Throwable t) {
 			NavigatorMarkerPlugin.logError(NavigatorMarkerDecoratorLight.ID, t);
 		}
 
-		return;
-		
 	}
 	
 	@Override
@@ -159,12 +157,9 @@ public class NavigatorMarkerDecoratorLight extends LabelProvider implements ILig
 							
 							if (!rsc.isAccessible()) continue;
 							
-							int severity=-1;
-							Integer currentSeverity = null;
-							
 							if (rsc.isAccessible()) {
-								severity=rsc.findMaxProblemSeverity(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE);
-								currentSeverity = (Integer)rsc.getSessionProperty(NavigatorMarkerDecoratorLight.NEW_DECORATION_QN);
+								int severity=rsc.findMaxProblemSeverity(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE);
+								Integer currentSeverity = (Integer)rsc.getSessionProperty(NavigatorMarkerDecoratorLight.NEW_DECORATION_QN);
 								
 								if ( currentSeverity==null || (currentSeverity!=severity) ) {
 									//-1 AND 0 ARE ASIGNED TO -1 (CLEAR). 0 IS USED FOR THE EXCLAMACION
@@ -192,7 +187,7 @@ public class NavigatorMarkerDecoratorLight extends LabelProvider implements ILig
 	public void redecorate(List<IResource> resourcesToBeUpdated) {
 		if (!this.isDecoratorEnabled()) return;
 		final LabelProviderChangedEvent labelProvider = new LabelProviderChangedEvent(this.getDecorator(), resourcesToBeUpdated.toArray());
-		new UIJob(NavigatorMarkerDecoratorLight.UIJob_NAME) {
+		new UIJob(NavigatorMarkerDecoratorLight.UI_JOB_NAME) {
 			@Override
 			public IStatus runInUIThread(IProgressMonitor monitor) {
 				fireLabelProviderChanged(labelProvider);

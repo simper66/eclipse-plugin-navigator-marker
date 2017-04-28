@@ -4,7 +4,7 @@
 
 	<extension point="org.eclipse.ui.decorators">
 		<decorator
-			id="org.jga.navmark.decoratorLight"
+			id="org.jga.navmark.plugin.decoratorLight"
 			class="org.jga.eclipse.plugin.navigatormarker.decorator.NavigatorMarkerDecoratorLight"
 			label="Navigator Marker"
 			lightweight="true"
