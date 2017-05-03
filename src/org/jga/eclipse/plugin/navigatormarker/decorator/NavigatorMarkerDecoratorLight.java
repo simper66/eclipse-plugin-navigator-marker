@@ -86,6 +86,8 @@ public class NavigatorMarkerDecoratorLight extends LabelProvider implements ILig
 			if (!this.isDecoratorEnabled()) return;
 
 			IResource rsc = getResource(element);
+			if (!canDecorate(rsc)) return;
+			
 			Integer severity = (Integer)rsc.getSessionProperty(NavigatorMarkerDecoratorLight.NEW_DECORATION_QN);
 			if (severity==null) {
 				severity = rsc.findMaxProblemSeverity(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE);
@@ -133,7 +135,7 @@ public class NavigatorMarkerDecoratorLight extends LabelProvider implements ILig
 				//FOR EACH DELTA MARKER
 				for (IMarkerDelta deltaMarker: deltaMarkers) {
 					IResource rsc = this.getResource(deltaMarker.getResource());
-					if (!rsc.isAccessible() && event.getType()!=IResourceChangeEvent.POST_CHANGE) continue;
+					if (!canDecorate(rsc)) continue;
 					
 					if (rsc instanceof IProject) { //IF ITS RESOURCE IS A IPROJECT WE SEE WHETHER IT EXISTS BUILD PATH PROBLEMS
 						
@@ -199,6 +201,10 @@ public class NavigatorMarkerDecoratorLight extends LabelProvider implements ILig
 	@Override
 	public boolean isLabelProperty(Object element, String property) {
 		return false;
+	}
+	
+	public boolean canDecorate(IResource rsc) {
+		return rsc.isAccessible() && !rsc.isHidden() && rsc.getProject().isOpen();
 	}
 	
 }

@@ -1,5 +1,5 @@
 Manifest-Version: 1.1
-Bundle-ManifestVersion: 3
+Bundle-ManifestVersion: 2
 Bundle-Name: NavigatorMarker
 Bundle-SymbolicName: org.jga.navmark.plugin;singleton:=true
 Bundle-Version: 1.0.1
